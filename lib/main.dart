@@ -11,7 +11,6 @@ class TextViewsScreen extends StatefulWidget {
   _TextViewsScreenState createState() => _TextViewsScreenState();
 }
 
-
 class _TextViewsScreenState extends State<TextViewsScreen> {
   Container _buildTextView(String text) {
     return Container(
@@ -37,40 +36,41 @@ class _TextViewsScreenState extends State<TextViewsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
+      appBar: AppBar(
         title: Text('TextViews in Flutter'),
-    ),
-    body: Padding(
+      ),
+      body: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-       children: [
-      Row(
-         children: [
-         _buildTextView('...'),
-       SizedBox(width: 24),
-          _buildTextView('...'),
-       SizedBox(width: 24),
-          _buildTextView('...'),
-     ],
-    ),
-       SizedBox(height: 16),
-      Row(
-       children: [
-          _buildTextView('...'),
-       SizedBox(width: 24),
-          _buildTextView('...'),
-       SizedBox(width: 24),
-         _buildTextView('...'),
-         ],
-      ),
-       SizedBox(height: 16),
-        ],
-       ),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                _buildTextView('...'),
+                SizedBox(width: 24),
+                _buildTextView('...'),
+                SizedBox(width: 24),
+                _buildTextView('...'),
+              ],
+            ),
+            SizedBox(height: 16),
+            Row(
+              children: [
+                _buildTextView('...'),
+                SizedBox(width: 24),
+                _buildTextView('...'),
+                SizedBox(width: 24),
+                _buildTextView('...'),
+              ],
+            ),
+            SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }
 }
+
 class CharacterData {
   final String name;
   final String server;
@@ -105,42 +105,6 @@ class CharacterData {
   });
 }
 
-class CharacterViewModel extends ChangeNotifier {
-  late CharacterData characterData;
-
-  void fetchData(String characterName, String serverName) async {
-    final response = await http.get(Uri.parse(
-        'https://raider.io/api/v1/characters/profile?region=us&realm=$serverName&name=$characterName&fields=mythic_plus_scores_by_season%3Acurrent%2Cguild%2Cmythic_plus_ranks'));
-
-    if (response.statusCode == 200) {
-      final jsonData = json.decode(response.body);
-
-      // Parse JSON and assign values to characterData properties
-      // ...
-
-      characterData = CharacterData(
-        name: jsonData['name'],
-        server: jsonData['realm'],
-        guild: jsonData.containsKey('guild') ? jsonData['guild']['name'] : 'No Guild Listed',
-        spec: jsonData['active_spec_name'],
-        worldRank: jsonData['mythic_plus_ranks']['overall']['world'],
-        regionRank: jsonData['mythic_plus_ranks']['overall']['region'],
-        realmRank: jsonData['mythic_plus_ranks']['overall']['realm'],
-        dpsWorldRank: jsonData['mythic_plus_ranks']['class_dps']['world'],
-        dpsRegionRank: jsonData['mythic_plus_ranks']['class_dps']['region'],
-        dpsRealmRank: jsonData['mythic_plus_ranks']['class_dps']['realm'],
-        healWorldRank: jsonData['mythic_plus_ranks']['class_healer']['world'],
-        healRegionRank: jsonData['mythic_plus_ranks']['class_healer']['region'],
-        healRealmRank: jsonData['mythic_plus_ranks']['class_healer']['realm'],
-        mythicPlusScore: jsonData['mythic_plus_scores_by_season'][0]['scores']['all'].toDouble(),
-      );
-
-      notifyListeners();
-    } else {
-      throw Exception('Failed to load data');
-    }
-  }
-}
 
 class MyApp extends StatelessWidget {
   @override
@@ -152,6 +116,50 @@ class MyApp extends StatelessWidget {
 }
 
 class YourFlutterWidget extends StatelessWidget {
+
+  final characterTextField = TextEditingController();
+  final serverTextField = TextEditingController();
+
+  late CharacterData characterData;
+
+  void fetchData(String characterName, String serverName) async {
+    final response = await http.get(Uri.parse(
+        'https://raider.io/api/v1/characters/profile?region=us&realm=$serverName&name=$characterName&fields=mythic_plus_scores_by_season%3Acurrent%2Cguild%2Cmythic_plus_ranks'));
+    print("fetchData --- response code = " + response.statusCode.toString());
+    print("fetchData --- response body = " + response.body);
+
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(response.body);
+
+      // Parse JSON and assign values to characterData properties
+      // ...
+
+      characterData = CharacterData(
+        name: jsonData['name'],
+        server: jsonData['realm'],
+        guild: jsonData.containsKey('guild')
+            ? jsonData['guild']['name']
+            : 'No Guild Listed',
+        spec: jsonData['active_spec_name'],
+        worldRank: jsonData['mythic_plus_ranks']['overall']['world'],
+        regionRank: jsonData['mythic_plus_ranks']['overall']['region'],
+        realmRank: jsonData['mythic_plus_ranks']['overall']['realm'],
+        dpsWorldRank: jsonData['mythic_plus_ranks']['class_dps']['world'],
+        dpsRegionRank: jsonData['mythic_plus_ranks']['class_dps']['region'],
+        dpsRealmRank: jsonData['mythic_plus_ranks']['class_dps']['realm'],
+        healWorldRank: jsonData['mythic_plus_ranks']['class_healer']['world'],
+        healRegionRank: jsonData['mythic_plus_ranks']['class_healer']['region'],
+        healRealmRank: jsonData['mythic_plus_ranks']['class_healer']['realm'],
+        mythicPlusScore: jsonData['mythic_plus_scores_by_season'][0]['scores']
+        ['all']
+            .toDouble(),
+      );
+
+    } else {
+      throw Exception('Failed to load data');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -159,7 +167,8 @@ class YourFlutterWidget extends StatelessWidget {
         title: Text('RaiderIO'),
       ),
       body: Directionality(
-        textDirection: TextDirection.ltr, // Adjust according to your app's direction
+        textDirection: TextDirection.ltr,
+        // Adjust according to your app's direction
         child: Container(
           color: Color(0xFF070707),
           padding: EdgeInsets.all(16.0),
@@ -169,7 +178,8 @@ class YourFlutterWidget extends StatelessWidget {
               SizedBox(height: 16.0),
               Row(
                 children: [
-                  Image.asset('assets/raiderio_image.png', width: 105, height: 104),
+                  Image.asset('assets/raiderio_image.png',
+                      width: 105, height: 104),
                   SizedBox(width: 8.0),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,6 +216,7 @@ class YourFlutterWidget extends StatelessWidget {
                 children: [
                   Expanded(
                     child: TextField(
+                      controller: characterTextField,
                       decoration: InputDecoration(
                         hintText: 'Character',
                         hintStyle: TextStyle(color: Color(0xFF9F9D9D)),
@@ -216,6 +227,7 @@ class YourFlutterWidget extends StatelessWidget {
                   SizedBox(width: 8.0),
                   Expanded(
                     child: TextField(
+                      controller: serverTextField,
                       decoration: InputDecoration(
                         hintText: 'Server',
                         hintStyle: TextStyle(color: Color(0xFF9F9D9D)),
@@ -226,6 +238,10 @@ class YourFlutterWidget extends StatelessWidget {
                   SizedBox(width: 8.0),
                   ElevatedButton(
                     onPressed: () {
+                      print("Search button pressed");
+                      String characterName = characterTextField.text ;
+                      String serverName = serverTextField.text ;
+                      fetchData( characterName, serverName);
                       // Perform search action
                     },
                     child: Text('Search'),
